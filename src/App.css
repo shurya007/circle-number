@@ -23,7 +23,7 @@
   color: white;
 }
 
-.tagcloud-input-container{
+.input-container{
   width: 100%;
   margin-top: 2%;
 }
@@ -32,12 +32,12 @@
   background-color: #4caf50;
   border: none;
   color: white;
-  padding: 20px;
+  padding: 10px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
-  margin: 4px 2px;
+  margin: 5px 5px;
   cursor: pointer;
 }
 
@@ -46,9 +46,41 @@
   cursor: no-drop;
 }
 
-.tagcloud-input{
-  width: 50%;
+.circle-input{
+  height: 34px;
+}
+
+.visited-circle{
+  border-color: limegreen !important;
+}
+
+.circles-container{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 2%;
+}
+
+.circle{
+  width: 150px;
   height: 150px;
+  border-radius: 50%;
+  background-color: bisque;
+  margin: 2%;
+  cursor: pointer;
+  border: 5px solid transparent;
+}
+
+.circle-counter{
+  position: relative;
+  color: darkgreen;
+  align-items: center;
+  height: 100%;
+  display: flex;
+  font-size: 55px;
+  justify-content: center;
 }
 
 @keyframes App-logo-spin {

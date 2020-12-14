@@ -1,64 +1,92 @@
 import * as React from 'react';
 import './App.css';
-import WordCloud from 'react-d3-cloud';
 
-class TagCloud extends React.Component{
+class CircleNumber extends React.Component{
   constructor(props) {
     super(props);
-    this.words = [];
-    this.fontMapper = word => Math.min(Math.log1p(word.value) * word.value, 70);
-    this.rotate = word => word.value % 45;
+    this.circleNumberMapper = new Map();
     this.state = {
-      textAreaValue: '',
-      renderCloud: false
+      allSet: false,
+      previousSelectedIndex: 0,
+      circleNumber: 0,
+      increment: 0
     }
     this.handleChange = this.handleChange.bind(this);
-    this.handleClick = this.handleClick.bind(this);
+  }
+
+
+  displayText = (index, value) => {
+    if(this.state.allSet && index !== this.state.previousSelectedIndex){
+      this.setCircle();
+      this.setState({allSet: false})
+    }
+
+    const circleObject = this.circleNumberMapper.get(index);
+    this.circleNumberMapper.set(index , {
+      numberAssigned: circleObject.numberAssigned > 0 ? circleObject.numberAssigned: this.state.increment + 1,
+      displayNumber: value
+    })
+    if(circleObject.numberAssigned === 0){
+      this.setState({increment: this.state.increment + 1})
+    }
+    if(!this.state.allSet){
+      this.setState({previousSelectedIndex: index})
+    } else{
+      this.forceUpdate()
+    }
+  }
+
+  onMouseUp = (index) => {
+    const circleObject = this.circleNumberMapper.get(index);
+    this.circleNumberMapper.set(index , {
+      ...circleObject,
+      displayNumber: false
+    })
+    this.setState({allSet: Array.from(this.circleNumberMapper.values()).every(item => item.numberAssigned > 0),
+      previousSelectedIndex: index})
   }
 
   handleChange(event){
-    this.setState({textAreaValue: event.target.value, renderCloud: false})
+    this.setState({circleNumber: event.target.value, increment: 0})
   }
 
-  handleClick(){
-    let regex = /[!"#$%'()*+,-./:;<=>?@[\]^_`~{|}]/g;
-    this.setState({renderCloud: false});
-    this.words = [];
-    let wordArray = this.state.textAreaValue.split("\n").join(",").split(" ").join(",").split(",");
-    let weightMapper = new Map();
-    wordArray.forEach(word => {
-      let wordChecked = word.trim().replace(regex, '');
-      if(wordChecked.length > 0){
-        wordChecked = wordChecked.charAt(0).toUpperCase() + wordChecked.slice(1).toLowerCase();
-        if(weightMapper.has(wordChecked)){
-          const wordWeight = weightMapper.get(wordChecked);
-          weightMapper.set(wordChecked, wordWeight + 5);
-        } else {
-          weightMapper.set(wordChecked, 10);
-        }
-      }
-    });
+  resetCounter = () => {
+    this.setState({increment: 0})
+  }
 
-    Array.from(weightMapper.keys()).forEach(word => {
-      this.words.push({
-        text: word,
-        value: weightMapper.get(word)
-      })
-    });
-    this.setState({renderCloud: true});
+  setCircle = () => {
+    this.setState({renderCircle: false})
+    this.circleNumberMapper = new Map();
+    for(let i=1; i<= this.state.circleNumber; i++){
+      this.circleNumberMapper.set(i, {
+        numberAssigned: 0,
+        displayNumber: false
+      });
+    }
+    this.setState({renderCircle: true})
   }
 
   render() {
     return (
-        <div className='tagcloud-input-container'>
-          <textarea className='tagcloud-input' placeholder='Enter text for creating word cloud'
-                    value={this.state.textAreaValue} onChange={this.handleChange}>
-          </textarea>
-          <br/>
-          <button className={'generate-button ' + (!this.state.textAreaValue ? 'disabled-button' : '')}
-                  onClick={this.handleClick} disabled={!this.state.textAreaValue}> Generate </button>
-          {this.state.renderCloud && (
-              <WordCloud width={1200} height={500} data={this.words} fontSizeMapper={this.fontMapper} rotate={this.rotate}/>
+        <div className='input-container'>
+          <input type='number' className='circle-input' placeholder='Enter number of circles to be generated'
+                    value={this.state.circleNumber} onChange={this.handleChange}>
+          </input>
+          <button className={'generate-button ' + (this.state.circleNumber < 1 ? 'disabled-button' : '')}
+                  onClick={() => {this.setCircle(); this.resetCounter()}} disabled={this.state.circleNumber < 1}> Generate </button>
+          {this.state.renderCircle && (
+              <div className='circles-container' >
+                {Array.from(this.circleNumberMapper.keys()).map(cir => {
+                      return <div key={cir} className={'circle ' + (this.circleNumberMapper.get(cir).numberAssigned > 0 ? 'visited-circle' : '')}
+                                  onMouseDown={() => this.displayText(cir, true)}
+                                  onMouseUp={() => this.onMouseUp(cir)} onMouseLeave={() => this.onMouseUp(cir)} >
+                        {this.circleNumberMapper.get(cir).displayNumber && <div className='circle-counter'>
+                          {this.circleNumberMapper.get(cir).numberAssigned}
+                        </div>}
+                      </div>
+                    })
+                }
+              </div>
           )}
         </div>
     )
@@ -70,7 +98,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <TagCloud/>
+        <CircleNumber/>
       </header>
     </div>
   );
